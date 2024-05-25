@@ -1,4 +1,4 @@
-This folder contains ready-to-use lists of abundant classes (and families) of repetitive elements in the latest telomer-to-telomer human genome (version T2Tchm13v2.0) 
+This folder contains ready-to-use lists of abundant classes (and two example families) of repetitive elements in the latest telomer-to-telomer human genome (version T2Tchm13v2.0) 
 For work in different organisms, use lists of repeats for your chosen genome. You should be able to find them in a RepeatMasker annotation file of that genome. 
 
 The files provided here can be passed to RepEnrich2n as the value of the --repeatlist argument, 

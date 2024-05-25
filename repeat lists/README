@@ -1,5 +1,4 @@
-This folder contains ready-to-use lists of abundant classes of repetitive elements in the latest 
-human genome (version T2Tchm13v2.0) 
+This folder contains ready-to-use lists of abundant classes (and families) of repetitive elements in the latest human genome (version T2Tchm13v2.0) 
 The files can be passed to RepEnrich2n as the value of the --repeatlist argument, 
 e.g. --repeatlist line_class.txt
 

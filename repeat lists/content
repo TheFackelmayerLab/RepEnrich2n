@@ -1,8 +1,0 @@
-This folder contains ready-to-use lists of abundant classes of repetitive elements in the latest human genome (version T2Tchm13v2.0) 
-The files can be passed to RepEnrich2n as the value of the --repeatlist argument, e.g. --repeatlist line_class.txt
-
-If you want to create your own lists, you can use the all_repeats.xlsx as a source. This file in Excel format contains a table 
-of all annotated repetitive elements in T2Tchm13v2.0 (without "simple" and "low complexity" repeats , together with the repeat 
-family and repeat class. Sort the table by clicking on the column head "family" or "class", find the family or class of your interest, 
-then copy the first column ("repeat") without the header to a new file or workbook, and save it as tab-delimited .txt file. See one of
-the provided .txt files for an example.

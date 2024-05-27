@@ -66,23 +66,25 @@ Similar resources are available for other organisms. In any case, it is importan
 ## **3. Preparations to create additional resources for the analysis**
 The RepEnrich2n analysis requires a number of additional files that depend on the reference genome of your choice, and on your raw data. <br>
 
-**First**, the analysis requires a repeat annotation file for the genome, such as the RepeatMasker file described in point 2 above. This original file contains a large number of “simple” and “low complexity” repeats, which will not be analyzed with RepEnrich2n anyway, and should be removed. For the T2T-CHM13v2.0 genome, we provide a cleaned-up version ```chm13v2.0_RepeatMasker_4.1.2p1.2022Apr14_dropped_simple.out``` that can be used directly for [download here]( https://1drv.ms/u/c/a671e173671c80ce/EST-PelBaW9AlCLxG0pYjpcB9CgI4m12Qpl02Cqrh5R2Mw?e=sMekIM).<br>
+**First**, the analysis requires a repeat annotation file for the genome, such as the RepeatMasker file described in point 2 above. This original file contains a large number of “simple” and “low complexity” repeats, which will not be analyzed with RepEnrich2n anyway, and should be removed. For the T2T-CHM13v2.0 genome, we provide a cleaned-up version ```chm13v2.0_RepeatMasker_4.1.2p1.2022Apr14_dropped_simple.out``` for [download here]( https://1drv.ms/u/c/a671e173671c80ce/EST-PelBaW9AlCLxG0pYjpcB9CgI4m12Qpl02Cqrh5R2Mw?e=sMekIM), which can be used directly.<br>
 For a different genome, search the internet for the RepeatMasker annotation file (in “native out” format) for that genome. Creating it yourself is possible, too, but the procedure is outside the scope of this tutorial. 
 After downloading, clean the RepeatMasker annotation file with the Python program drop_simple.py, which we provide in the supplementary code folder (see the in-program documentation on how to use it).<br>
 
-**Second**, RepEnrich2n requires a list of all repeats in the reference genome, and the pseudogenomes for every one of them. The original versions of RepEnrich1 and RepEnrich2 provide a setup program () that must be run before RepEnrich. This program creates the repeats list in a file (```repnames.bed```), as well as repeat pseudogenomes and their Bowtie2 representations that will be needed for RepEnrich2n (the intermediate .fa files are not needed after the bt2 files have been generated, and can be deleted). We also provide an updated version of this program, but if you want to continue with the T2T-CHM13v2.0 genome, there is no need to use this program. Instead, [download our pre-generated files from here]( https://1drv.ms/u/c/a671e173671c80ce/EX3T0z0xy1FDhIfF1Nw3bi4BIj532CPXiqHg-M--EzLcuw?e=l7UWPN). If you use any other genome (version), using the setup program is definitely necessary!<br>
+**Second**, RepEnrich2n requires a list of all repeats in the reference genome, and the pseudogenomes for every one of them. The original versions of RepEnrich1 and RepEnrich2 use a setup program that must be run before RepEnrich. This program creates the repeats list in a file (```repnames.bed```), as well as repeat pseudogenomes and their Bowtie2 representations that will be needed for RepEnrich2n (the intermediate .fa files are not needed after the bt2 files have been generated, and can be deleted). We also provide an updated version of this program, RepEnrich2n_setup.py in the supplementary code folder, but if you want to continue with the T2T-CHM13v2.0 genome, there is no need to use this program. Instead, [download our pre-generated files from here]( https://1drv.ms/u/c/a671e173671c80ce/EX3T0z0xy1FDhIfF1Nw3bi4BIj532CPXiqHg-M--EzLcuw?e=l7UWPN). <br>
+If, however, you want to analyze repeats in any other genome (version), using our setup program is definitely necessary!<br>
 
-No matter whether you downloaded the pre-generated files or generated them with the setup program, it is highly recommended to copy all the .bt2 files (1373 files in the case of the T2T genome) into a separate folder, and also place the ```repnames.bed``` file into the same folder. In the downloaded version, the repnames.bed file is already in the correct location (i.e. together with the .bt2 files).
+No matter whether you downloaded the pre-generated files or generated them with the setup program, it is highly recommended to copy all the .bt2 files (1373 files in the case of the T2T genome) into a separate folder (e.g. called “bt_files”), and also place the ```repnames.bed``` file into the same folder. In the downloaded version, the repnames.bed file is already in the correct location (i.e. together with the .bt2 files).
 
 **Finally**, we need to run Bowtie2 to align the raw reads of each of your sample to the genome (so, e.g., if you have two controls and two experiments, you run the alignments four times). These initial runs of Bowtie2 will create count data for reads that can be uniquely mapped to any of the repeats. This is done with the following commands: <br>
 
 ```bowtie2 -q -p 16 -x /path/to/bowtie2_indexes/T2Tchm13v2 -1 /path/to/name_1.fq -2 /path/to/ name_2.fq -S /path/to/mapped_name.sam```<br>
 
-Here, you provide the path to the bowtie2_indexes (downloaded above), while the arguments -1 and -2 have to point to the raw read data of your end-paired RNAseq experiment, in fq format. The result of the alignment will be a .sam file, which we have to convert/translate to a different format, .bam, by the following command <br>
+Here, you provide the path to the bowtie2_indexes (downloaded above), while the arguments -1 and -2 have to point to the raw read data of your end-paired RNAseq experiment, in fq format. 
+Choose “name” for each of your sample, e.g. “ctrl_1” or “treated_1”. The result of the alignment will be a .sam file, which we have to convert/translate to a different format, .bam, by the following command <br>
 
 ```samtools view -bS /path/to/mapped_name.sam > /path/to/mapped_name.bam```<br>
 
-After this, you will have one .sam and one .bam file for each of your samples, of which the .sam file was only an intermediate and can now be deleted. 
+After this, you will have one .sam and one .bam file for each of your samples. The .sam files are only intermediates and can now be deleted. So, in the end you will have, for example, the four files “ctrl_1.bam”, “ctrl_2.bam”, “treated_1.bam” and “treated_2.bam”.
 
 ## **4. Running the RepEnrich2n program**
 The RepEnrich2n program is run from the computer’s command line, using the Python 3 interpreter. The program requires additional information passed through arguments, as follows: <br>
@@ -97,6 +99,40 @@ The RepEnrich2n program is run from the computer’s command line, using the Pyt
 
 The command to run RepEnrich2n is simply ```python repenrich2n.py```, followed by the arguments and their values, for example: 
 
-```python repenrich2n.py --annotation_file /path/to/annotation/file/for/genome --alignment_bam /path/to/bam/file/of/condition --fastqfile /path/to/first/file/with/raw/reads –fastqfile2 /path/to/first/file/with/raw/reads --repeatlist /path/to/custom/repeat/list --cpus n --outpath /basepath/for/output```<br>
+```python repenrich2n.py --annotation_file /path/to/chm13v2.0_RepeatMasker_4.1.2p1.2022Apr14_dropped_simple.out --alignment_bam /path/to/mapped_name.bam --fastqfile /path/to/name_1.fq --fastqfile2 /path/to/name_2.fq --repeatlist /path/to/custom/repeat_list.txt --cpus n --outpath /basepath/for/output```<br>
 
-As the RepEnrich2n analysis is time-consuming (and can take several days of computing power for the complete set of human repeats when you use a slower computer setup), the program can also be run with a subset of repeats that you are interested in. For example, if you are interested in analysing L1 elements only, there is no need to wait many hours for the program to compute Alu or LTR elements. To limit the analysis to only those repeat of your interest, RepEnrich2n has the command line argument --repeatlist, where you can supply the path to a tab-delimited txt file with your personal choice of repeats. <br>
+Of these, the arguments repeatlist, cpus and outpath are not strictly required, but are implemented to provide extra convenience. Also, if your RNAseq raw data are not end-paired (which is only rarely the case), the fastqfile2 is not required and should not be declared.<br>
+
+**Watch out:** In its current version, the program assumes that it is run from in the folder/directory that contains the .bt2 files and the repnames.bed file. So, move to this folder/directory with ```cd /path/to/bt_files```<br> 
+
+Note that running RepEnrich2n requires a lot of processing power, and - even on a reasonably fast MacBook - can take 50 hours or more. As you have to do this separately for each of your experimental conditions, we are talking a week or more for a full analysis. To overcome this issue, we have implemented a function to allow the program to be run with a subset of repeats that you are interested in. For example, if you are interested in analyzing L1 elements only, there is no need to wait many hours for the program to compute Alu or LTR elements. To limit the analysis to only the repeats of your interest, RepEnrich2n has the command line argument --repeatlist, where you can supply the path to a tab-delimited txt file with your personal choice of repeats. <br>
+For convenience, we provide ready-to-use lists for several abundant classes and families of repeats in the human T2T genome; these lists can be used directly as arguments for --repeatlist, e.g. ```--repeatlist LINE_class.txt```, or serve as examples on how to create your own list. If you are interested in ALL repeats, you do not have to declare the --repeatlist argument, or you can pass the value allrepeats.txt, as ```--repeatlist allrepeats.txt```; both options are equivalent, but explicitly passing allrepeats.txt is significantly faster. 
+
+We know that it is very inconvenient to dedicate a computer full-time to the analysis, and (especially for a notebook) not be able to shut it down and move it somewhere else. Our RepEnrich2n therefore allows you to stop the execution at any time, e.g. by pressing ctrl-C in the shell. This may give you an ugly error message, but the program will understand and remember where it was stopped, and will continue with the analysis at this point after being re-started. The re-startability of the program also allows you to kill/interrupt single bowtie2 processes in case they get stuck - which happens quite regularly in our hands. When the program has finished, it will tell whether the analysis was completed successfully, or must be re-run to process the (hopefully few) repeats that were missing due to interrupting a stuck bowtie2 process. <br> 
+
+After successful completion, the result of every RepEnrich2n analysis is saved in four files, which contain the count data in tab-delimited txt file format as follows: <br>
+
+1. **unique_mapper_counts.tsv**: uniquely mapped counts per repeat type
+2. **fraction_counts.tsv**: fractionally mapped counts per repeat type
+3. **family_fraction_counts.tsv**: fractionally mapped counts per repeat family
+4. **class_fraction_counts.tsv** : fractionally mapped counts per repeat class
+
+The most important of these is the fraction_counts.tsv file, which contain the final results as read counts per individual repeat type (e.g. L1PA5); these counts are the sum of the uniquely mapped reads in unique_mapper_counts.tsv, and the fractional counts for the same repeat type. The last two files contain count data aggregated for repeat family (e.g. L1) and repeat class (e.g. LINE). These allow statistical evaluation (see below) on the level of whole families and classes. 
+
+
+## **5. Statistical Evaluation and Interpretation of the RepEnrich2n results**
+The last step of the analysis is to statistically evaluate the counts data generated by RepEnrich2n. Most conveniently, this can be done with a script in R (a powerful open-source programming language and environment for statistical computing and graphics (https://www.r-project.org/). There are many ways to evaluate the data, and it is beyond the scope of this tutorial to give detailed protocols. Most likely, if you are doing RNAseq, you already have your own analysis pipeline.<br>
+For the purpose of this tutorial, we provide a sample script (R_samplescript.txt) for data from an RNA-seq experiment with two conditions (e.g. “control” and “treated”), each in duplicate. For different data, the R script can be adapted accordingly. Before the script can be run, the count data from RepEnrich2n must be consolidated into one tab-delimited file, e.g. using Excel. The sample script assumes that the data is a tab-delimited .txt file with five columns, where the first one has the individual repeat name, the second and third column have the count data from “control” samples, and the fourth and fifth column have the data from “treated” samples. The first row must provide the titles “repeat_name”, and the names of the samples, e.g. “ctrl1”, “ctrl2” etc. in this way:<br>
+
+|repeat_name |   ctrl1   |   ctrl2     | treated1  | treated2   |
+|-------------------|-------------|---------------|---------------|-----------------|
+|5S                     | 1140       | 1891        | 1122        | 1289            |
+|7SK                   | 820304  | 197764    | 795431   | 685558       |
+|7SLRNA           | 7145018 | 1585139 | 6442318 | 6248160      |
+|ACRO1             | 64            |82               | 53            | 29                |
+.<br>
+.<br>
+.<br>
+
+This file can be created by copying the count data of any of the results files of RepEnrich2n. The most comprehensive “full” analysis is that of the data in the fraction_counts.tsv files, but you can also analyze the higher-order clusters of families or classes, using data in the family_fraction_counts.tsv or class_fraction_counts.tsv files, respectively. 
+

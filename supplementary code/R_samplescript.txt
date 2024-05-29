@@ -1,0 +1,68 @@
+library(DESeq2)
+library(ggplot2)
+
+# Load the counts data from consolidated RepEnrich2n results - put the correct path here!
+counts_data <- read.delim("/path/to/the/file/RepEnrichResults.txt", row.names="repeat_name")
+
+# Create a condition factor
+condition_factor <- factor(c("control", "control", "treatment", "treatment"))
+
+# Create a colData dataframe
+col_data <- data.frame(row.names=colnames(counts_data), condition=condition_factor)
+
+# Create DESeqDataSet object
+dds <- DESeqDataSetFromMatrix(countData=counts_data, colData=col_data, design=~condition)
+
+# Filter out entries with low counts
+dds <- dds[rowSums(counts(dds)) > 1, ]
+
+# Normalize and run differential expression analysis
+dds <- DESeq(dds)
+
+# Get results for differential expression
+res <- results(dds)
+
+# Order results by adjusted p-value
+res <- res[order(res$padj), ]
+
+# Extract the top 25 results (or, if you want all, put a high number there, e.g. 2000)
+top_res <- head(res, 25)
+
+# Summarize the results
+summary(res)
+
+# Extract data for plotting
+plot_data <- as.data.frame(res)
+plot_data$log2FoldChange <- as.numeric(plot_data$log2FoldChange)
+plot_data$padj <- as.numeric(plot_data$padj)
+plot_data$baseMean <- log2(plot_data$baseMean + 1) # Transform baseMean to log2 scale
+plot_data$significance <- ifelse(plot_data$padj < 0.05, "Significant", "Not Significant")
+plot_data$color <- ifelse(plot_data$padj < 0.05 & plot_data$log2FoldChange > 0, "blue",
+                          ifelse(plot_data$padj < 0.05 & plot_data$log2FoldChange < 0, "red", "black"))
+
+# Identify outliers, change this to a value you consider an outlier in your experiment, e.g. >5
+plot_data$outlier <- abs(plot_data$log2FoldChange) > 3
+
+# Plot using ggplot2
+ggplot(plot_data, aes(x = log2FoldChange, y = -log10(padj), color = color, shape = outlier)) +
+  geom_point(aes(size = significance), alpha = 0.5) +
+  scale_color_identity() +
+# if wanted, use different shapes for outliers, check https://ggplot2-book.org/scales-other#sec-scale-shape
+  scale_shape_manual(values = c(`TRUE` = 16, `FALSE` = 16)) + # these would the take different codes
+  scale_size_manual(values = c("Not Significant" = 1, "Significant" = 2)) +
+  geom_vline(xintercept = 0, linetype = "solid", color = "black") + 
+  geom_hline(yintercept = 0, linetype = "solid", color = "black") + 
+  geom_hline(yintercept = 1.31, linetype = "dashed", color = "blue") + 
+  theme_minimal() +
+  labs(title = " ", x = "log2(fold change)", y = "-log10(padj)") +
+  ylim(0, 9) +
+  xlim(-4, 4) +		# put a reasonable value for the limits of the x-axis of log2(fold change)
+  theme(legend.position = "none") # Remove all legends
+
+# Prepare data frame for output
+data_frame <- as.data.frame(top_res)
+data_frame <- cbind("repeat" = rownames(data_frame), data_frame)
+rownames(data_frame) <- NULL
+
+# Write out the data to a file
+write.table(as.matrix(data_frame), file = "results.txt", sep = "\t", row.names = FALSE, quote = FALSE)

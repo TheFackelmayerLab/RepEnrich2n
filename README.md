@@ -22,7 +22,7 @@ Briefly, the analysis with RepEnrich2n will follow these steps:
 1. Prepare your computer setup and install required software
 2. Download the genome of choice, and its RepeatMasker annotation file
 3. Prepare additional files for the RepEnrich2n analysis
-4. Run the RepEnrich2n analysis to determine read counts of every repeat
+4. Run the RepEnrich2n analysis to determine read counts for every repeat
 5. Perform statistical evaluation of the RepEnrich2n count data 
 
 Step 1 must be done only once for as many analyses you plan to run. Step 2 and a good part of step 3 must be performed once per genome. Parts of step 3 and step 4 are performed for every individual sample (e.g. separately for each biological replicate and condition). Step 5 is done once per desired statistical analysis (e.g. all replicates and conditions together). <br><br>
@@ -48,7 +48,7 @@ For Mac, both programs can alternatively also be installed with [Homebrew](https
 **For reference: We currently use Python 3 (version 3.11.4), Biopython (version 1.83), Bowtie2 (version 2.4.3), samtools (version 1.19.2), and bedtools (v2.31.1)**
 
 ## **2. Selecting the suitable reference genome**
-The better the reference genome is chosen, the better the results of the analysis will be. For our analysis of repetitive elements in the human genome, we have used the latest available version, T2T-CHM13v2.0, instead of the standard hg38 genome. The T2T genome includes gapless telomere-to-telomere assemblies for all 22 human autosomes and chromosome X, comprising 3,054,815,472 bp of total sequence. The entire genome sequence, documentation and additional files can be found at the GitHub page of the Telomere-to-telomere consortium CHM13 project. At the same GitHub page, you also find the required RepeatMasker annotation file. These files are in the public domain and can be directly downloaded through the following links (but you don’t have to do this now, read on!):
+The better the reference genome is chosen, the better the results of the analysis will be. For our analysis of repetitive elements in the human genome, we have used the latest available version, T2T-CHM13v2.0, instead of the standard hg38 genome. The T2T genome includes gapless telomere-to-telomere assemblies for all 22 human autosomes and chromosome X, comprising 3,054,815,472 bp of total sequence. The entire genome sequence, documentation and additional files can be found at the GitHub page of the [Telomere-to-telomere consortium CHM13 project](https://github.com/marbl/CHM13). At the same GitHub page, you also find the required RepeatMasker annotation file. These files are in the public domain and can be directly downloaded through the following links (but you don’t have to do this now, read on!):
 
 1. [T2Tchm13v2.0 genome](https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/analysis_set/chm13v2.0.fa.gz)
 2. [RepeatMasker file for T2Tchm13v2.0](https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/annotation/chm13v2.0_RepeatMasker_4.1.2p1.2022Apr14.out)

@@ -48,7 +48,7 @@ For Mac, both programs can alternatively also be installed with [Homebrew](https
 **For reference: We currently use Python 3 (version 3.11.4), Biopython (version 1.83), Bowtie2 (version 2.4.3), samtools (version 1.19.2), and bedtools (v2.31.1)**
 
 ## **2. Selecting the suitable reference genome**
-The better the reference genome is chosen, the better the results of the analysis will be. For our analysis of repetitive elements in the human genome, we have used the latest available version, T2T-CHM13v2.0, instead of the standard hg38 genome. The T2T genome includes gapless telomere-to-telomere assemblies for all 22 human autosomes and chromosome X, comprising 3,054,815,472 bp of total sequence. The entire genome sequence, documentation and additional files can be found at the GitHub page of the [Telomere-to-telomere consortium CHM13 project](https://github.com/marbl/CHM13). At the same GitHub page, you also find the required RepeatMasker annotation file. These files are in the public domain and can be directly downloaded through the following links (but you don’t have to do this now, read on!):
+*The better the reference genome is chosen, the better the results of the analysis will be*. For our analysis of repetitive elements in the human genome, we have used the latest available version, T2T-CHM13v2.0, instead of the standard hg38 genome. The T2T genome includes gapless telomere-to-telomere assemblies for all 22 human autosomes and chromosome X, comprising 3,054,815,472 bp of total sequence. The entire genome sequence, documentation and additional files can be found at the GitHub page of the [Telomere-to-telomere consortium CHM13 project](https://github.com/marbl/CHM13). At the same GitHub page, you also find the required RepeatMasker annotation file. These files are in the public domain and can be directly downloaded through the following links (but you don’t have to do this now, read on!):
 
 1. [T2Tchm13v2.0 genome](https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/analysis_set/chm13v2.0.fa.gz)
 2. [RepeatMasker file for T2Tchm13v2.0](https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/annotation/chm13v2.0_RepeatMasker_4.1.2p1.2022Apr14.out)
@@ -70,8 +70,30 @@ The RepEnrich2n analysis requires a number of additional files that depend on th
 For a different genome, search the internet for the RepeatMasker annotation file (in “native out” format) for that genome. Creating it yourself is possible, too, but the procedure is outside the scope of this tutorial. 
 After downloading, clean the RepeatMasker annotation file with the Python program drop_simple.py, which we provide in the supplementary code folder (see the in-program documentation on how to use it).<br>
 
-**Second**, RepEnrich2n requires a list of all repeats in the reference genome, and the pseudogenomes for every one of them. The original versions of RepEnrich1 and RepEnrich2 use a setup program that must be run before RepEnrich. This program creates the repeats list in a file (```repnames.bed```), as well as repeat pseudogenomes and their Bowtie2 representations that will be needed for RepEnrich2n (the intermediate .fa files are not needed after the bt2 files have been generated, and can be deleted). We also provide an updated version of this program, RepEnrich2n_setup.py in the supplementary code folder, but if you want to continue with the T2T-CHM13v2.0 genome, there is no need to use this program. Instead, [download our pre-generated files from here]( https://1drv.ms/u/c/a671e173671c80ce/EX3T0z0xy1FDhIfF1Nw3bi4BIj532CPXiqHg-M--EzLcuw?e=l7UWPN). <br>
-If, however, you want to analyze repeats in any other genome (version), using our setup program is definitely necessary!<br>
+**Using different annotation files:** Here, we use the typical annotation file for the T2T genome, which is the native output of a RepeatMasker analysis, but that is not the only annotation file that can be used. Other repeat annotations are available for the more prominent genomes, too. Unfortunately, these annotation files were prepared by different consortia using different programs, and thus do not have a unified format. So, the first step to utilize these alternative annotation files is to re-format the content so that it can be used by ```RepEnrich2n_setup.py```. This is most easily done by a short program in Python, which extracts the required information from the original file and creates a new file with the format required by our programs. Basically, all information will be in the original file, but in different columns, which simply must be re-ordered. So, the code would read the annotation file line-by-line, split the content of the line into separate junks of information depending on the delimiter (usually, but not always, a tab character ´\t´), and write a new file with these junks of information in a different order. An (arbitrary) example for code which would keep the first three column, then use original column 10 as new column 4, create two empty columns, and finally use original column 4 as new columns 7 and 8 would be: 
+```
+def reorder_columns(input_file, output_file):
+    with open(input_file, 'r') as infile, open(output_file, 'w') as outfile:
+        for line in infile:
+            # change this for a different delimiter
+            columns = line.strip().split('\t')	
+            # Extract the required columns
+            new_columns = columns[:3] + [columns[9], '', '', columns[3], columns[3]]
+            # Join the new columns with tab delimiter and write to the output file
+            outfile.write('\t'.join(new_columns) + '\n')
+
+# run the code only when the script is executed directly (not imported as a module)
+if __name__ == "__main__": 
+input_file = 'input.txt' # Replace with your input file name and path
+output_file = 'output.txt' # Replace with your desired output file name and path reorder_columns(input_file, output_file)
+```
+<br>
+
+To adapt this sample code to your case, the first step will be to open the alternative annotation file and check the content, to see in which column the required information is stored. Then, change the code to re-order the columns as necessary. Run it on your annotation file, and check that the order of the columns in the generated output file is identical to the example file we provide for download, ```chm13v2.0_RepeatMasker_4.1.2p1.2022Apr14_dropped_simple.out```.
+
+
+**Second**, RepEnrich2n requires a list of all repeats in the reference genome, and the pseudogenomes for every one of them. The original versions of RepEnrich1 and RepEnrich2 use a setup program that must be run before RepEnrich. This program reads information from the annotation file to create the repeats list in a file (```repnames.bed```), as well as repeat pseudogenomes and their Bowtie2 representations that will be needed for RepEnrich2n (the intermediate .fa files are not needed after the bt2 files have been generated, and can be deleted). We also provide an updated version of this program, RepEnrich2n_setup.py in the supplementary code folder, but if you want to continue with the T2T-CHM13v2.0 genome, there is no need to use this program. Instead, [download our pre-generated files from here]( https://1drv.ms/u/c/a671e173671c80ce/EX3T0z0xy1FDhIfF1Nw3bi4BIj532CPXiqHg-M--EzLcuw?e=l7UWPN). <br>
+If, however, you want to analyze repeats in any other genome (version), or utilize an alternative annotation file, running our setup program is definitely necessary!<br>
 
 No matter whether you downloaded the pre-generated files or generated them with the setup program, it is highly recommended to copy all the .bt2 files (1373 files in the case of the T2T genome) into a separate folder (e.g. called “bt_files”), and also place the ```repnames.bed``` file into the same folder. In the downloaded version, the repnames.bed file is already in the correct location (i.e. together with the .bt2 files).
 

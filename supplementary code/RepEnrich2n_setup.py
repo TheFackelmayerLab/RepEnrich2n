@@ -49,7 +49,7 @@ genomefasta = args.genomefasta
 cpus = args.cpus
 
 # using my own path to save the data instead of cluttering my general user folder
-fofs_path = "/Users/fof/Desktop/repeat_analysis/repenrich_intermediates_censat/"
+fofs_path = "/Users/fof/Desktop/repeat_analysis/repenrich_intermediates/"
 # or leave that path empty
 #fofs_path = ""
 bt_path = os.path.join(fofs_path, "bt")

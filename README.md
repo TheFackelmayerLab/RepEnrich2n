@@ -67,32 +67,58 @@ Similar resources are available for other organisms. In any case, it is importan
 The RepEnrich2n analysis requires a number of additional files that depend on the reference genome of your choice, and on your raw data. <br>
 
 **First**, the analysis requires a repeat annotation file for the genome, such as the RepeatMasker file described in point 2 above. This original file contains a large number of “simple” and “low complexity” repeats, which will not be analyzed with RepEnrich2n anyway, and should be removed. For the T2T-CHM13v2.0 genome, we provide a cleaned-up version ```chm13v2.0_RepeatMasker_4.1.2p1.2022Apr14_dropped_simple.out``` for [download here]( https://1drv.ms/u/c/a671e173671c80ce/EST-PelBaW9AlCLxG0pYjpcB9CgI4m12Qpl02Cqrh5R2Mw?e=sMekIM), which can be used directly.<br>
-For a different genome, search the internet for the RepeatMasker annotation file (in “native out” format) for that genome. Creating it yourself is possible, too, but the procedure is outside the scope of this tutorial. 
-After downloading, clean the RepeatMasker annotation file with the Python program drop_simple.py, which we provide in the supplementary code folder (see the in-program documentation on how to use it).<br>
+*If you want to use this file, the following paragraphs can be skipped; continue with “Second, …”.*<br><br>
+For a different genome, search the internet for the RepeatMasker annotation file (in “native out” format) for that genome. Creating it yourself is possible, too, but the procedure is outside the scope of this tutorial. After downloading, clean the RepeatMasker annotation file with the Python program drop_simple.py, which we provide in the supplementary code folder (see the in-program documentation on how to use it). <br>
 
-**Using different annotation files:** Here, we use the typical annotation file for the T2T genome, which is the native output of a RepeatMasker analysis. But that is not the only annotation file that can be used, and other repeat annotations are available for the more prominent genomes, too. Unfortunately, these annotation files were prepared by different consortia using different programs, and thus do not have a unified format. So, the first step to utilize these alternative annotation files is to re-format the content so that it can be used by ```RepEnrich2n_setup.py```. This is most easily done by a short program in Python, which extracts the required information from the original file and creates a new file with the format required by our programs. Basically, all information should be in the original file, but in different columns, which simply must be re-ordered. So, the code would read the annotation file line-by-line, split the content of the line into separate junks of information depending on the delimiter (usually, but not always, a tab character ´\t´), and write a new file with these junks of information in a different order. An (arbitrary) example for code which would keep the first three column, then use original column 10 as new column 4, create two empty columns, and finally use original column 4 as new columns 7 and 8 would be: 
+*Using different annotation files:* Here, we use the typical annotation file for the T2T genome, which is the native output of a RepeatMasker analysis. But that is not the only annotation file that can be used, and other repeat annotations are available for the more prominent genomes, too. Unfortunately, these annotation files were prepared by different consortia using different programs, and thus do not have a unified format. Although all information will be in the file, the bits and pieces are most likely stored in different columns, which simply must be re-ordered, and/or in a different format, which must be converted. So, the first step to utilize these alternative annotation files is to open the file and check in what columns and format the required information is stored. Much of the information in the alternative annotation file is not needed for RepEnrich2n analysis, and can be replaced by zeros. A format that works looks like this: 
+<br>
+**0 | 0 | 0 | 0 | chr1 | 116796047 | 121405145 | 0 | 0 | name | class/family**
+<br>
+So, the file must have the respective chromosome in column 5, the start and end of the sequence in columns 6 and 7, the name of the repeat type in column 10, and its class and family in column 11 (separated by a slash “/”). For reference, check the RepeatMasker file we provide for download, ```chm13v2.0_RepeatMasker_4.1.2p1.2022Apr14_dropped_simple.out```
+<br>
+
+A sample code snippet to re-order/re-format the alternative content is this: 
 ```
 def reorder_columns(input_file, output_file):
     with open(input_file, 'r') as infile, open(output_file, 'w') as outfile:
         for line in infile:
-            # change this for a different delimiter
-            columns = line.strip().split('\t')	
-            # Extract the required columns
-            new_columns = columns[:3] + [columns[9], '', '', columns[3], columns[3]]
-            # Join the new columns with tab delimiter and write to the output file
+            columns = line.strip().split('\t')
+            
+            # Create new columns based on the requirements
+            new_columns = ['0', '0', '0', '0'] + columns[:3] + [columns[9], '0', '0', f"{columns[10]}/{columns[11]}"]
+            
+            # Join the new columns with a tab delimiter and write to the output file
             outfile.write('\t'.join(new_columns) + '\n')
 
-# run the code only when the script is executed directly (not imported as a module)
-if __name__ == "__main__": 
-input_file = 'input.txt' # Replace with your input file name and path
-output_file = 'output.txt' # Replace with your desired output file name and path reorder_columns(input_file, output_file)
+# Run the code only when the script is executed directly (not imported as a module)
+if __name__ == "__main__":
+    input_file = 'annotation.txt'  # Replace with your input file name and path
+    output_file = 'annotation_converted.txt'  # Replace with your desired output file name and path
+    reorder_columns(input_file, output_file)
 ```
 <br>
 
-To adapt this sample code to your specific case, the first step will be to open the alternative annotation file and check in which column the required information is stored. Then, change the code to re-order the columns as described below (it is possible that additional code is needed e.g. to re-format text). Run it on your annotation file, and check that the order of the columns in the generated output file is identical to the example file we provide for download, ```chm13v2.0_RepeatMasker_4.1.2p1.2022Apr14_dropped_simple.out```. Most of the columns in this file will not be used by RepEnrich2, and can be filled with a zero (0). In the end, the file must have the respective chromosome in column 5, the start and end of the sequence in columns 6 and 7, the name of the repeat type in column 10, and its class and family in column 11 (separated by a slash “/”). It will look something like this:<br>
-**0 | 0 | 0 | 0 | chr1 | 116796047 | 121405145 | 0 | 0 | name | class/family**
+This code snippet extracts the required information from the original file and creates a new file with the format required by our programs. It reads the annotation file line-by-line, splits the content of each line into separate junks of information depending on the delimiter (usually, but not always, a tab character ´\t´), and writes a new file with these junks of information in a different order. This (arbitrary) code example would fill the first 4 columns with the numeral 0, followed by the content of columns 1 to 3 of the original file. Then, the next column should contain the content of column 10 of the original file, followed by two columns with numeral 0. The last new column should be the combined content of original columns 11 and 12, separated by a slash (e.g. satellite and bsat should become satellite/bsat).<br>
+
+To adapt this sample code to your specific case, change it to re-order the columns and/or re-format the content to the form described above. Run it on your annotation file, and check that the order/format of the columns in the generated output file is correct.<br>
+*Make extra sure* that none of the names of repeat, class, or family contains a comma, a space character or double quotes, as these will confuse the analysis programs. Most problems with running the program are caused by an incorrectly formatted annotation file. Use the find-replace function in Excel to replace commas and space characters with an underscore (_) and remove double quotes, or use a small Python program like this:
+```
+def process_file(input_file, output_file):
+    with open(input_file, 'r') as infile, open(output_file, 'w') as outfile:
+        for line in infile:
+            # Replace commas and spaces with underscores and remove double quotes
+            modified_line = line.replace(',', '_').replace(' ', '_').replace('"', '')
+            
+            # Write the modified line to the output file
+            outfile.write(modified_line)
+
+# Run the code only when the script is executed directly (not imported as a module)
+if __name__ == "__main__":
+    input_file = 'input.txt'  # Replace with your input file name and path
+    output_file = 'output.txt'  # Replace with your desired output file name and path
+    process_file(input_file, output_file)
+```
 <br>
-*Make extra sure* that none of the names of repeat, class, or family contains a comma or a space character, as these will confuse the analysis programs. Use the find-replace function in Excel to (or a small a Python program) to replace these characters with an underscore (_). <br>
 
 We plan to soon provide a ready-to-use version of the annotation file for a more comprehensive centromere/satellite repeat annotation, adapted from the one published by the UCSC Genomics Institute [here](https://genome.ucsc.edu/cgi-bin/hgTables?db=hub_3671779_hs1&hgta_group=map&hgta_track=hub_3671779_censat&hgta_table=hub_3671779_censat&hgta_doSchema=describe+table+schema). Others may also follow later - stay tuned!
 
@@ -167,3 +193,4 @@ Our R_samplescript.txt will read the data from this consolidated file, but in or
 The script then uses [DESeq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html) for statistical evaluation, and [ggplot2](https://ggplot2.tidyverse.org/) for visualization of the final result. Both packages must be installed in R, as per the instructions on their respective website, before the script is run. <br>
 In the analysis, we set a significance threshold to 0.05 after correction for multiple hypothesis test, print the 25 most significant hits to a file “results.txt”, and visualized the differential expression of repetitive elements with a volcano plot. We have added comments for documentation into the R script, to make it easy to adapt it to other demands, e.g. to save more that 25 hits, or change the appearance of the volcano plot. <br>
 As said above, this is only a sample script, and much much more can be done in R, depending on the scientific question. It is definitely worth investing some time into learning the basics of R!
+

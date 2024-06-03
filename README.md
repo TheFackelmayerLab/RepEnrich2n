@@ -12,7 +12,7 @@ Please make sure you have read the paper before attempting to install the progra
 Much of the program logic was adapted from the modernized version of RepEnrich2, provided at the repository for Galaxy tools developed in the ARTbio platform at the IBPS CNRS & UPMC, at https://github.com/ARTbio/tools-artbio/tree/main/tools/repenrich2<br>
 
 ## **Our Contribution**<br>
-Our extended version aims at enhancing user experience, ease of use, and improvements in the code to make it more robust, run faster, and provide improved documentation. It is written entirely in Python 3, and we run it successfully on a Apple Macbook pro with M1 Apple silicon. It should, however, run identically in any other operating system and computer setup that has functional Python 3 installed.<br>
+Our extended version aims at enhancing user experience, ease of use, and improvements in the code to make it more robust, run faster, and provide improved documentation. It is written entirely in Python 3, and we run it successfully on an Apple Macbook pro with M1 Apple silicon. It should, however, run identically in any other operating system and computer setup that has functional Python 3 installed.<br>
 
 # **Tutorial**<br>
 In the same way as the original software, RepEnrich2n is run from the command line of your operating system, with arguments that provide the program with additional information. If you are not familiar with running programs from the command line, fear not! It isn’t hard if you follow our tutorial below. And certainly, there is a computer-savvy person somewhere around in your workspace who can help you to get started, or when you run into a problem. Otherwise, there are online tutorials for using the command line (e.g. using the Windows Powershell program, or the Mac Terminal app); or ask the AI of your preference, such as ChatGPT. 
@@ -67,10 +67,13 @@ Similar resources are available for other organisms. In any case, it is importan
 The RepEnrich2n analysis requires a number of additional files that depend on the reference genome of your choice, and on your raw data. <br>
 
 **First**, the analysis requires a repeat annotation file for the genome, such as the RepeatMasker file described in point 2 above. This original file contains a large number of “simple” and “low complexity” repeats, which will not be analyzed with RepEnrich2n anyway, and should be removed. For the T2T-CHM13v2.0 genome, we provide a cleaned-up version ```chm13v2.0_RepeatMasker_4.1.2p1.2022Apr14_dropped_simple.out``` for [download here]( https://1drv.ms/u/c/a671e173671c80ce/EST-PelBaW9AlCLxG0pYjpcB9CgI4m12Qpl02Cqrh5R2Mw?e=sMekIM), which can be used directly.<br>
-*If you want to use this file, the following paragraphs can be skipped; continue with “Second, …”.*<br><br>
+*If you want to use this file, the following paragraphs can be skipped; continue with “Second, …”.*<br>
+
 For a different genome, search the internet for the RepeatMasker annotation file (in “native out” format) for that genome. Creating it yourself is possible, too, but the procedure is outside the scope of this tutorial. After downloading, clean the RepeatMasker annotation file with the Python program drop_simple.py, which we provide in the supplementary code folder (see the in-program documentation on how to use it). <br>
 
-*Using different annotation files:* Here, we use the typical annotation file for the T2T genome, which is the native output of a RepeatMasker analysis. But that is not the only annotation file that can be used, and other repeat annotations are available for the more prominent genomes, too. Unfortunately, these annotation files were prepared by different consortia using different programs, and thus do not have a unified format. Although all information will be in the file, the bits and pieces are most likely stored in different columns, which simply must be re-ordered, and/or in a different format, which must be converted. So, the first step to utilize these alternative annotation files is to open the file and check in what columns and format the required information is stored. Much of the information in the alternative annotation file is not needed for RepEnrich2n analysis, and can be replaced by zeros. A format that works looks like this: 
+*Using different annotation files:* For our routine analysis, we use the typical annotation file for the T2T genome, which is the native output of a RepeatMasker analysis. But that is not the only annotation file that can be used, and other repeat annotations are available for the more prominent genomes, too. In the supplementary files, we also provide ready-to-use versions of annotation files for the T2T genome for a more comprehensive centromere/satellite repeat annotation, adapted from the one published by the UCSC Genomics Institute [here](https://genome.ucsc.edu/cgi-bin/hgTables?db=hub_3671779_hs1&hgta_group=map&hgta_track=hub_3671779_censat&hgta_table=hub_3671779_censat&hgta_doSchema=describe+table+schema), and their “composite repeats” annotation published [here](https://t2t.gi.ucsc.edu/chm13/dev/t2t-chm13-v1.0/compositeRepeats.html). Others may also follow later - stay tuned!<br>
+
+If you want to use other annotations or a different genome, it is also possible. Unfortunately, these alternative annotation files were prepared by different consortia using different programs, and thus do not have a unified format. Although all information will be in the file, the bits and pieces are most likely stored in different columns, which simply must be re-ordered, and/or in a different format, which must be converted. So, the first step to utilize these alternative annotation files is to open the file and check in what columns and format the required information is stored. Much of the information in the alternative annotation file is not needed for RepEnrich2n analysis, and can be replaced by zeros. A format that works looks like this: 
 <br>
 **0 | 0 | 0 | 0 | chr1 | 116796047 | 121405145 | 0 | 0 | name | class/family**
 <br>
@@ -83,10 +86,10 @@ def reorder_columns(input_file, output_file):
     with open(input_file, 'r') as infile, open(output_file, 'w') as outfile:
         for line in infile:
             columns = line.strip().split('\t')
-            
+
             # Create new columns based on the requirements
             new_columns = ['0', '0', '0', '0'] + columns[:3] + [columns[9], '0', '0', f"{columns[10]}/{columns[11]}"]
-            
+
             # Join the new columns with a tab delimiter and write to the output file
             outfile.write('\t'.join(new_columns) + '\n')
 
@@ -108,7 +111,7 @@ def process_file(input_file, output_file):
         for line in infile:
             # Replace commas and spaces with underscores and remove double quotes
             modified_line = line.replace(',', '_').replace(' ', '_').replace('"', '')
-            
+
             # Write the modified line to the output file
             outfile.write(modified_line)
 
@@ -119,8 +122,6 @@ if __name__ == "__main__":
     process_file(input_file, output_file)
 ```
 <br>
-
-We plan to soon provide a ready-to-use version of the annotation file for a more comprehensive centromere/satellite repeat annotation, adapted from the one published by the UCSC Genomics Institute [here](https://genome.ucsc.edu/cgi-bin/hgTables?db=hub_3671779_hs1&hgta_group=map&hgta_track=hub_3671779_censat&hgta_table=hub_3671779_censat&hgta_doSchema=describe+table+schema). Others may also follow later - stay tuned!
 
 **Second**, RepEnrich2n requires a list of all repeats in the reference genome, and the pseudogenomes for every one of them. The original versions of RepEnrich1 and RepEnrich2 use a setup program that must be run before RepEnrich. This program reads information from the annotation file to create the repeats list in a file (```repnames.bed```), as well as repeat pseudogenomes and their Bowtie2 representations that will be needed for RepEnrich2n (the intermediate .fa files are not needed after the bt2 files have been generated, and can be deleted). We also provide an updated version of this program, RepEnrich2n_setup.py in the supplementary code folder, but if you want to continue with the T2T-CHM13v2.0 genome and the standard RepeatMasker annotation, there is no need to use this program. Instead, [download our pre-generated files from here]( https://1drv.ms/u/c/a671e173671c80ce/EX3T0z0xy1FDhIfF1Nw3bi4BIj532CPXiqHg-M--EzLcuw?e=l7UWPN). <br>
 If, however, you want to analyze repeats in any other genome (version), or utilize an alternative annotation file, running our setup program is definitely necessary!<br>

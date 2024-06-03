@@ -12,6 +12,11 @@ import sys
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 
+
+# global variables 
+digits = 2 				# round final results to this number of digits; use 0 to create integers
+repeat_names_file = None		# empty placeholder, do NOT change this!
+
 #
 # read the command line arguments and perform checks to increase robustness
 # 
@@ -47,10 +52,7 @@ parser.add_argument('--outpath', action='store', dest='outpath', type=str,
 
 args = parser.parse_args()
 
-
-# parameters from arguments
-repeat_names_file = None			# empty placeholder
-annotation_file = args.annotation_file
+# parameters from argumentsannotation_file = args.annotation_file
 unique_mapper_bam = args.alignment_bam
 fastqfile_1 = args.fastqfile
 fastqfile_2 = args.fastqfile2
@@ -92,7 +94,7 @@ try:
                     stdout=open(os.devnull, 'wb'),
                     stderr=open(os.devnull, 'wb'))
 except OSError:
-    print("Error: Bowtie2 or bedtools not available")
+    print("Error: Bowtie2 and/or bedtools not available")
     raise
 
 
@@ -136,13 +138,13 @@ def read_repeat_names(file_path):
         repeat_list = [line.strip() for line in file]
     return sorted(list(set(repeat_list)))
 
-# set a reference repeat list for the script
-# the list is either passed in --repeatlist
-# or generated from the repnames.bed file 
-# change the next line if the renames.bed file is in a different location 
-# than the current folder/directory
+# set the reference repeat list for the script
+#   the list is either passed in --repeatlist
+#   or generated from the repnames.bed file 
+#   change the next line if the renames.bed file is in a different location 
+#   than the current folder/directory
 input_file = 'repnames.bed'	# add path if necessary
-if repeat_names_file:
+if repeat_names_file:		# if --repeatlist argument was passed
     output_file = os.path.join(outpath, 'filtered_repeats.bed')
     print(f"Using your list of repeats in {repeat_names_file}")
     repeat_list = read_repeat_names(repeat_names_file)
@@ -160,7 +162,7 @@ else:
     use_these = input_file		# use the original list
 
 
-# we will save bedtools analysis in a cache file so that bedrolls must run only once
+# we will save bedtools analysis results in a cache file so that bedtools must run only once
 # and can later retrieve results from the cached file in all subsequent runs with the same data
 #
 # this allows the program to be stopped later (in the time-consuming step of
@@ -192,7 +194,7 @@ def generate_data():
     
     return dict(counts)
 
-# Define `counts` to ensure it's always available
+# Define `counts` to ensure it is always available
 counts = defaultdict(int)
 
 try:
@@ -205,7 +207,7 @@ try:
         for key, value in data.items():
             counts[key] = value
 except FileNotFoundError:
-    # If cache file is not found, generate data and save it
+    # If cache file is not found, generate data and create the cache
     print("Generating data with bedtools, please wait...")
     data = generate_data()
     with open(cache_file, 'w') as f:
@@ -217,19 +219,17 @@ except FileNotFoundError:
 
 
 # print the result of uniquely mapped repeats
-print(f"Identified {sumofrepeatreads} unique reads that mapped to repeats.") 
+print(f"Identified {sumofrepeatreads} reads that uniquely mapped to repeats.") 
 
 
 # counting uniquely mapped reads is finished here
 
 
-# go on with determining fractional counts for every repeat  
+# go on with determining fractional counts for every repeat
+# creating a .reads file for every individual repeat type  
 # ----------------------------------------------------------
 # modified to handle potential bowtie errors gracefully
 def run_bowtie(args):
-  """
-  Writes to files to save memory.
-  """
   metagenome = args
   b_opt = "-k 1 -p 2 --quiet --no-hd --no-unal"
   if paired_end is True:
@@ -237,10 +237,6 @@ def run_bowtie(args):
                           f" -1 {fastqfile_1} -2 {fastqfile_2}")
   else:
     command = shlex.split(f"bowtie2 {b_opt} -x {metagenome} {fastqfile_1}")
-
-# Print metagenome and constructed command for debugging
-#  print(f"Processing metagenome: {metagenome}")
-#  print(f"Command: {' '.join(command)}")
 
   # Capture both stdout and stderr
   result = subprocess.run(command, check=True, capture_output=True, text=True)
@@ -261,11 +257,11 @@ def run_bowtie(args):
 
 
 # function to create a new args_list that ONLY contain the entries of repeat_list 
-# IF NOT the {metagenome}.reads file does not exist
+# IF the {metagenome}.reads file already exists
 # This handles second (and later) runs when the first run failed to produce a .reads file 
 # for one or more repeats, because bowtie failed or was interrupted.
 # This also allows the program to be stopped at any point during the analysis (e.g. by pressing
-# ctrl-c), and continue later without having to start from the beginning again.
+# ctrl-c), and continue later without having to start all over again.
 
 def check_and_add_to_args(metagenome):
   """Checks if the .reads file exists and adds metagenome to args_list if it does NOT exist.
@@ -302,8 +298,8 @@ with ThreadPoolExecutor(max_workers=cpus) as executor:
 # Aggregate results (avoiding race conditions)
 metagenome_reads = defaultdict(list)  # metagenome: list of multimap reads
 
-# Now we read .reads files to populate metagenomes_reads
-# Iterate through metagenomes and gracefully handle those that do not exist
+# Now we read the .reads files to populate metagenomes_reads
+# Iterate through metagenomes and gracefully handle those that do NOT exist
 is_complete = "ANALYSIS COMPLETED SUCCESSFULLY"
 for metagenome in repeat_list:
   # Construct the file path
@@ -318,6 +314,7 @@ for metagenome in repeat_list:
       # read are only once in list
       metagenome_reads[metagenome] = list(set(metagenome_reads[metagenome]))
   else:
+     # if one or more .reads files are missing
      print(f"File '{file_path}' not found, skipping {metagenome}.")
      is_complete = " >>>> WARNING: ANALYSIS IS INCOMPLETE, RE-RUN PROGRAM TO COMPLETE" 
 
@@ -377,25 +374,26 @@ for key, value in fractionalcounts.items():
 # we're done with the analysis here
 
 # now we only need to write the final results to files
-# first, assemble file names for output at outpath
+# first, assemble file names for writing to outpath
 class_output  = os.path.join(outpath, 'class_fraction_counts.tsv')
 family_output = os.path.join(outpath, 'family_fraction_counts.tsv')
 repeat_output = os.path.join(outpath, 'fraction_counts.tsv')
 
-# second, print class-, family- and fraction-repeats counts to files
+# second, print class-, family- and fraction-repeats counts to these files
+# round to `digits` digits; 2 is default, use 0 for integers (as required for DESeq2 analysis) 
 with open(class_output, 'w') as fout:
     for key in sorted(classfractionalcounts):
-        fout.write(f"{key}\t{round(classfractionalcounts[key], 2)}\n")
+        fout.write(f"{key}\t{round(classfractionalcounts[key], digits)}\n")
 
 with open(family_output, 'w') as fout:
     for key in sorted(familyfractionalcounts):
-        fout.write(f"{key}\t{round(familyfractionalcounts[key], 2)}\n")
+        fout.write(f"{key}\t{round(familyfractionalcounts[key], digits)}\n")
 
 with open(repeat_output, 'w') as fout:
     for key in sorted(fractionalcounts):
         fout.write(f"{key}\t{repeat_ref[key]['class']}\t"
                    f"{repeat_ref[key]['family']}\t"
-                   f"{round(fractionalcounts[key], 2)}\n")
+                   f"{round(fractionalcounts[key], digits)}\n")
 
 # report whether analysis was completed successfully or program should be re-run 
 print(f"\n{is_complete}\n")

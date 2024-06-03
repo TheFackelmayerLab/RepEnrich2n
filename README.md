@@ -26,7 +26,7 @@ Briefly, the analysis with RepEnrich2n will follow these steps:
 5. Perform statistical evaluation of the RepEnrich2n count data 
 
 Step 1 must be done only once for as many analyses you plan to run. Step 2 and a good part of step 3 must be performed once per genome. Parts of step 3 and step 4 are performed for every individual sample (e.g. separately for each biological replicate and condition). Step 5 is done once per desired statistical analysis (e.g. all replicates and conditions together). <br><br>
-The following documentation and detailed tutorial is under construction and may thus NOT YET BE READY in every aspect. Please let us know if you encounter problems or need clarifications.
+The following documentation and detailed tutorial may not cover every aspect; consider it “work in progress”. Please let us know if you encounter problems or need clarifications.
 
 ## **1. Preparing your Computer Setup**
 Importantly, the RepEnrich2n program requires additional software to be installed. First, as the analysis is done with Python 3, it is important that your computer has a functional Python 3 installation. The deprecated older Python 2.7 is not compatible with Python 3 code, and cannot be used. This won’t be a problem if you install Python now, but if your computer is older and has pre-installed Python, make sure the version is 3.8 or higher. To learn more about Python 3, see the official website https://www.python.org/ from where you can also download installers for almost every operating system under the sun. We have coded RepEnrich2n in Python on a Mac, but it should run on all other systems, too, maybe with minor adaptations.<br>

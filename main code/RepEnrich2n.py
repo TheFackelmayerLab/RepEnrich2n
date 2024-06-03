@@ -52,7 +52,8 @@ parser.add_argument('--outpath', action='store', dest='outpath', type=str,
 
 args = parser.parse_args()
 
-# parameters from argumentsannotation_file = args.annotation_file
+# parameters from arguments
+annotation_file = args.annotation_file
 unique_mapper_bam = args.alignment_bam
 fastqfile_1 = args.fastqfile
 fastqfile_2 = args.fastqfile2

@@ -1,9 +1,8 @@
-This folder contains ready-to-use lists of abundant classes (and two example families) of repetitive elements in the latest telomer-to-telomer human genome (version T2Tchm13v2.0), as well as a file with all repeats (allrepeats.txt)
-The files are created for working with the RepeatMasker annotation file we provide for download; do not try to use them if you work with a different annotation file!
+This folder contains ready-to-use lists of abundant classes (and two example families) of repetitive elements in the latest telomer-to-telomer human genome (version T2Tchm13v2.0), as well as a file with all repeats (allrepeats.txt). For work in different organisms, use lists of repeats from the RepeatMasker annotation file for your chosen genome. You should be able to find this on the website that supplies the genome sequence. 
 
-The files provided here can be passed to RepEnrich2n as the value of the --repeatlist argument, 
+The files provided here are created for working with the RepeatMasker annotation file we provide for download; do not try to use them if you work with a different annotation file!
+
+To use, pass the file of choice to RepEnrich2n as the value of the --repeatlist argument, 
 e.g. --repeatlist /path/to/file/LINE_class.txt
 
 If you want to create your own lists, you can use the all_repeats.xlsx (not allrepeats.txt) as a source. This file in Excel format contains a table of all annotated repetitive elements in T2Tchm13v2.0 (without "simple" and "low complexity" repeats), together with their repeat family and repeat class. Sort the table by clicking on the column head "family" or "class", find the family or class of your interest, then copy the first column ("repeat") without the header to a new file or workbook, and save it as tab-delimited .txt file. See one of the provided .txt files for an example.
-
-For work in different organisms, use lists of repeats for your chosen genome. You should be able to find them in an annotation created with RepeatMasker. 

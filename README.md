@@ -11,7 +11,7 @@ Please make sure you have read the paper before attempting to install the progra
 
 Much of the program logic was adapted from the modernized version of RepEnrich2, provided at the repository for Galaxy tools developed in the ARTbio platform at the IBPS CNRS & UPMC, at https://github.com/ARTbio/tools-artbio/tree/main/tools/repenrich2<br>
 
-## **Our contribution**<br>
+## **Our Contribution**<br>
 Our extended version aims at enhancing user experience, ease of use, and improvements in the code to make it more robust, run faster, and provide improved documentation. It is written entirely in Python 3, and we run it successfully on a Apple Macbook pro with M1 Apple silicon. It should, however, run identically in any other operating system and computer setup that has functional Python 3 installed.<br>
 
 # **Tutorial**<br>
@@ -28,7 +28,7 @@ Briefly, the analysis with RepEnrich2n will follow these steps:
 Step 1 must be done only once for as many analyses you plan to run. Step 2 and a good part of step 3 must be performed once per genome. Parts of step 3 and step 4 are performed for every individual sample (e.g. separately for each biological replicate and condition). Step 5 is done once per desired statistical analysis (e.g. all replicates and conditions together). <br><br>
 The following documentation and detailed tutorial is under construction and may thus NOT YET BE READY in every aspect. Please let us know if you encounter problems or need clarifications.
 
-## **1. Preparing your computer setup**
+## **1. Preparing your Computer Setup**
 Importantly, the RepEnrich2n program requires additional software to be installed. First, as the analysis is done with Python 3, it is important that your computer has a functional Python 3 installation. The deprecated older Python 2.7 is not compatible with Python 3 code, and cannot be used. This won’t be a problem if you install Python now, but if your computer is older and has pre-installed Python, make sure the version is 3.8 or higher. To learn more about Python 3, see the official website https://www.python.org/ from where you can also download installers for almost every operating system under the sun. We have coded RepEnrich2n in Python on a Mac, but it should run on all other systems, too, maybe with minor adaptations.<br>
 
 We also need other software: 
@@ -47,7 +47,7 @@ For Mac, both programs can alternatively also be installed with [Homebrew](https
 
 **For reference: We currently use Python 3 (version 3.11.4), Biopython (version 1.83), Bowtie2 (version 2.4.3), samtools (version 1.19.2), and bedtools (v2.31.1)**
 
-## **2. Selecting the suitable reference genome**
+## **2. Selecting the Suitable Reference Genome**
 *The better the reference genome is chosen, the better the results of the analysis will be*. For our analysis of repetitive elements in the human genome, we have used the latest available version, T2T-CHM13v2.0, instead of the standard hg38 genome. The T2T genome includes gapless telomere-to-telomere assemblies for all 22 human autosomes and chromosome X, comprising 3,054,815,472 bp of total sequence. The entire genome sequence, documentation and additional files can be found at the GitHub page of the [Telomere-to-telomere consortium CHM13 project](https://github.com/marbl/CHM13). At the same GitHub page, you also find the required RepeatMasker annotation file. These files are in the public domain and can be directly downloaded through the following links (but you don’t have to do this now, read on!):
 
 1. [T2Tchm13v2.0 genome](https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/analysis_set/chm13v2.0.fa.gz)
@@ -63,7 +63,7 @@ Regarding annotation files, the T2T consortium also supplies more specialized an
 
 Similar resources are available for other organisms. In any case, it is important to use the soft-masked version of the genome, in which repetitive regions are shown in lower-case letters, NOT the hard-masked version, in which repetitive regions are replaced by runs of N. 
 
-## **3. Preparations to create additional resources for the analysis**
+## **3. Preparations to Create Additional Resources for the Analysis**
 The RepEnrich2n analysis requires a number of additional files that depend on the reference genome of your choice, and on your raw data. <br>
 
 **First**, the analysis requires a repeat annotation file for the genome, such as the RepeatMasker file described in point 2 above. This original file contains a large number of “simple” and “low complexity” repeats, which will not be analyzed with RepEnrich2n anyway, and should be removed. For the T2T-CHM13v2.0 genome, we provide a cleaned-up version ```chm13v2.0_RepeatMasker_4.1.2p1.2022Apr14_dropped_simple.out``` for [download here]( https://1drv.ms/u/c/a671e173671c80ce/EST-PelBaW9AlCLxG0pYjpcB9CgI4m12Qpl02Cqrh5R2Mw?e=sMekIM), which can be used directly.<br>
@@ -138,7 +138,7 @@ Choose “name” for each of your sample, e.g. “ctrl_1” or “treated_1”.
 
 This will generate a .bam file for your data. After this you will have (in our example), the four files “ctrl_1.bam”, “ctrl_2.bam”, “treated_1.bam” and “treated_2.bam”. The intermediary .sam files are now no longer needed and can be deleted.
 
-## **4. Running the RepEnrich2n program**
+## **4. Running the RepEnrich2n Program**
 The RepEnrich2n program is run from the computer’s command line, using the Python 3 interpreter. The program requires additional information passed through arguments, as follows: <br>
 
 --annotation_file [path to annotation file for the chosen genome] <br>
@@ -172,7 +172,7 @@ After successful completion, the result of every RepEnrich2n analysis is saved i
 The most important of these is the fraction_counts.tsv file, which contain the final results as read counts per individual repeat type (e.g. L1PA5); these counts are the sum of the uniquely mapped reads in unique_mapper_counts.tsv, and the fractional counts for the same repeat type. The last two files contain count data aggregated for repeat family (e.g. L1) and repeat class (e.g. LINE). These allow statistical evaluation (see below) on the level of whole families and classes. 
 
 
-## **5. Statistical Evaluation and Interpretation of the RepEnrich2n results**
+## **5. Statistical Evaluation and Interpretation of the RepEnrich2n Results**
 The last step of the analysis is to statistically evaluate the counts data generated by RepEnrich2n. There are many ways to do this, and it is beyond the scope of this tutorial to give detailed protocols. Most likely, if you are doing RNAseq, you already have your own analysis pipeline. Most conveniently, the analysis can be performed with a script in R (a powerful open-source programming language and environment for statistical computing and graphics (https://www.r-project.org/). R is available for every operating system, and easy to install. Using R can be quite a challenge, though, and it is highly recommended to follow a basic tutorial (e.g. on Youtube). For a more in-depth introduction, see [this official site]( https://cran.r-project.org/manuals.html).
 <br>
 
